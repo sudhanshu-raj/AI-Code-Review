@@ -16,5 +16,5 @@ build/
 .kestra/
 temp_*.txt
 *.diff
-backend/
 .github/
+api/
