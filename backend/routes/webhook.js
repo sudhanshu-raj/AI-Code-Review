@@ -13,7 +13,7 @@ function verifyGitHubSignature(payload, signature, secret) {
 // GitHub webhook endpoint
 router.post('/', async (req, res) => {
     console.log('WEBHOOK RECEIVED');
-    console.log('Headers:', req.headers);
+    // console.log('Headers:', req.headers);
     
     const signature = req.headers['x-hub-signature-256'];
     const event = req.headers['x-github-event'];

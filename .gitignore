@@ -18,3 +18,5 @@ temp_*.txt
 *.diff
 .github/
 api/
+
+notes*
