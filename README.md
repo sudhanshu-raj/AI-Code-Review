@@ -38,11 +38,9 @@ cd code_reviewer_project
 
 2. Install dependencies
 ```bash
-# Backend
 cd backend
 npm install
 
-# Frontend
 cd ../frontend
 npm install
 ```
