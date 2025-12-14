@@ -28,6 +28,7 @@ Output ONLY these exact lines (fill in the values):
 
 SCORE: <number 0-100>
 RISK: <LOW|MEDIUM|HIGH>
+OVERVIEW: <2-3 sentences describing what these changes do and their purpose>
 ISSUES:
 - file=<relative file path> snippet=<exact code line from diff> reason=<issue description>
 - file=<relative file path> snippet=<exact code line from diff> reason=<issue description>
@@ -38,7 +39,8 @@ RECOMMENDATIONS:
 Rules:
 - Do NOT include line numbers
 - The snippet must be the exact code line from the diff (trimmed, no + or - prefix)
-- Include file path, code snippet, and reason for each issue`;
+- Include file path, code snippet, and reason for each issue
+- OVERVIEW should explain what functionality is being added/modified/removed`;
 
       const fs = require("fs");
       const tempFile = `temp_diff_${Date.now()}.txt`;
@@ -52,7 +54,16 @@ Rules:
       console.log("Analysis completed");
       console.log(analysis);
 
-      const parsed = this.parseCleanAnalysis(analysis);
+      // Extract only the structured output (SCORE through RECOMMENDATIONS)
+      // This skips all the thinking/checkpoint noise from Cline
+      const structuredOutputMatch = analysis.match(/SCORE:\s*\d+[\s\S]*?RECOMMENDATIONS:[\s\S]*?(?=\n\n|$)/i);
+      const cleanedAnalysis = structuredOutputMatch ? structuredOutputMatch[0] : analysis;
+      
+      console.log("=== CLEANED ANALYSIS ===");
+      console.log(cleanedAnalysis);
+      console.log("=== END CLEANED ===");
+
+      const parsed = this.parseCleanAnalysis(cleanedAnalysis);
       
       // Parsinf diff to get correct line numbers
       const diffMap = this.parseUnifiedDiff(diff);
@@ -62,6 +73,7 @@ Rules:
       return {
         score: parsed.score,
         riskLevel: parsed.riskLevel,
+        overview: parsed.overview,
         issues,
         recommendations: parsed.recommendations
       };
@@ -84,6 +96,18 @@ Rules:
     
     const riskMatch = output.match(/RISK:\s*(LOW|MEDIUM|HIGH)/i);
     const riskLevel = riskMatch ? riskMatch[1].toUpperCase() : null;
+    
+    // Extract overview - skip template text, only get actual content
+    // Match OVERVIEW: followed by actual text (not template with < >)
+    const overviewMatch = output.match(/OVERVIEW:\s*([^<\n][^\n]*(?:\n(?!\s*ISSUES:)[^\n]+)*)/i);
+    let overview = null;
+    if (overviewMatch) {
+      const rawOverview = overviewMatch[1].trim();
+      // Skip if it's the template text
+      if (!rawOverview.includes('<') && !rawOverview.includes('sentences describing') && rawOverview.length > 20) {
+        overview = rawOverview;
+      }
+    }
     
     // Helper: find last occurrence of a section header (case-insensitive)
     const ci = (s) => s.toUpperCase();
@@ -141,6 +165,7 @@ Rules:
     return {
       score,
       riskLevel,
+      overview,
       issuesData,
       recommendations,
     };

@@ -144,8 +144,9 @@ router.post('/', async (req, res) => {
                             );
                             console.log(`Inline review posted successfully`);
                             
-                            // Also post summary comment with score and recommendations
-                            const commentBody = `## 🤖 RevBot Review Results\n\n${summary}\n\n---\n*Powered by RevBot Reviewer*`;
+                            // Also post summary comment with overview and details
+                            const overviewSection = result.overview ? `### 📋 What Changed\n${result.overview}\n\n` : '';
+                            const commentBody = `## 🤖 RevBot Review Results\n\n${overviewSection}${summary}\n\n---\n*Powered by RevBot Reviewer*`;
                             await githubAppService.postComment(
                                 installation.id,
                                 repo.owner.login,
@@ -155,8 +156,9 @@ router.post('/', async (req, res) => {
                             );
                         } catch (reviewError) {
                             console.error('Failed to create inline review:', reviewError.message);
-                            // Fall back to regular comment
-                            const commentBody = `## RevBot Review Results\n\n${summary}\n\n---\n*Powered by RevBot Reviewer*`;
+                            // Fall back to regular comment with overview added
+                            const overviewSection = result.overview ? `### 📋 What Changed\n${result.overview}\n\n` : '';
+                            const commentBody = `## RevBot Review Results\n\n${overviewSection}${summary}\n\n---\n*Powered by RevBot Reviewer*`;
                             await githubAppService.postComment(
                                 installation.id,
                                 repo.owner.login,
@@ -166,8 +168,9 @@ router.post('/', async (req, res) => {
                             );
                         }
                     } else {
-                        // No line numbers found, post summary comment
-                        const commentBody = `## RevBot Review Results\n\n${summary}\n\n---\n*Powered by RevBot Reviewer*`;
+                        // No line numbers found, post comment with overview and summary
+                        const overviewSection = result.overview ? `### 📋 What Changed\n${result.overview}\n\n` : '';
+                        const commentBody = `## RevBot Review Results\n\n${overviewSection}${summary}\n\n---\n*Powered by RevBot Reviewer*`;
                         await githubAppService.postComment(
                             installation.id,
                             repo.owner.login,
